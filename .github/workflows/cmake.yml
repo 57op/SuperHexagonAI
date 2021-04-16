@@ -1,0 +1,40 @@
+name: CMake
+
+on: [push]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    # The CMake configure and build commands are platform agnostic and should work equally
+    # well on Windows or Mac.  You can convert this to a matrix build if you need
+    # cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: Setup python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9.1'
+        architecture: x64
+    - name: Additional Binaries
+      working-directory: ${{github.workspace}}/RLHookLib
+      run: python compile_additional_binaries.py
+    - name: Wheel
+      run: pip install wheel
+    - name: Build
+      working-directory: ${{github.workspace}}/RLHookLib
+      run: python setup.py bdist_wheel
+    - name: Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: release
+        path: |
+          ${{github.workspace}}/RLHookLib/dist
+          ${{github.workspace}}/RLHookLib/bin
